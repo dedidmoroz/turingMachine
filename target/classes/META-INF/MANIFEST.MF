@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Package: com.scarlet.main
+Built-By: scarlet_bean
+Build-Jdk: 1.8.0_25
+Created-By: Maven Integration for Eclipse
+Main-Class: com.scarlet.main.Project
+
