@@ -6,6 +6,9 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
+
 import javax.swing.JFrame;
 
 import java.awt.Toolkit;
@@ -48,6 +51,8 @@ import javax.swing.border.TitledBorder;
 import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 import javax.swing.ScrollPaneConstants;
+
+import org.controlsfx.dialog.Dialogs;
 
 public class Project {
 	//parametrs of command
@@ -174,6 +179,7 @@ public class Project {
 		tapeValueList.remove(0);
 		this.getRegisterValue();
 		this.setTapeValues();
+	 
 	}
 	
 	public Project() {
@@ -249,6 +255,9 @@ public class Project {
 		menuItem_5.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\graph.gif"));
 		menuItem_5.setToolTipText("Виконати автоматично програму");
 		menuItem_5.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK | InputEvent.ALT_MASK));
+		menuItem_5.addActionListener((ActionEvent e)->{
+			this.executeProgram();
+		});
 		menu_1.add(menuItem_5);
 		
 		JSeparator separator_2 = new JSeparator();
@@ -282,7 +291,7 @@ public class Project {
 		
 		table = new JTable();
 		table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		table.setFont(new Font("Tahoma", Font.BOLD | Font.ITALIC, 14));
+		table.setFont(new Font("Tahoma", Font.PLAIN, 14));
 		table.setToolTipText("Стрічка машини Тюрінга");
 		table.setCellSelectionEnabled(true);
 		table.setModel(new DefaultTableModel(
@@ -296,7 +305,7 @@ public class Project {
 		));
 		table.setBorder(new BevelBorder(BevelBorder.RAISED, new Color(47, 79, 79), new Color(0, 0, 0), null, null));
 		table.setBackground(new Color(128, 0, 0));
-		table.setForeground(new Color(0, 0, 0));
+		table.setForeground(Color.WHITE);
 		table.setBounds(50, 58, 518, 32);
 		frame.getContentPane().add(table);
 		
@@ -350,8 +359,8 @@ public class Project {
 		frame.getContentPane().add(scrollPane);
 		
 		table_1 = new JTable();
-		table_1.setForeground(new Color(0, 0, 0));
-		table_1.setFont(new Font("Times New Roman", Font.BOLD, 16));
+		table_1.setForeground(Color.WHITE);
+		table_1.setFont(new Font("Times New Roman", Font.PLAIN, 16));
 		table_1.setBackground(new Color(139, 0, 0));
 		table_1.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		
@@ -432,17 +441,37 @@ public class Project {
 		Matcher matcher = pattern.matcher(comand);
 		if(matcher.matches()) {
 			String [] pars = comand.split("/");
+			if(pars.length==3){
+				this.charFromAlp = pars[0];
+				this.carretWay = pars[1];
+				this.carretMachineState = pars[2].charAt(1);
+				this.goCarret(this.charFromAlp, this.carretWay, this.carretMachineState);
+			}
 		} else {
-			JOptionPane.showMessageDialog(null, "Команда не правильно введена", "Помилка", JOptionPane.ERROR_MESSAGE, null);
+			JOptionPane.showMessageDialog(null, "Помилка в команді", "Помилка", JOptionPane.ERROR_MESSAGE, null);
 		}
 
 	}
 	
-	public void goCarret(char alpChar,char way,int state){
+	public void goCarret(String charFromAlp,String carretWay,int state){
+		this.setRegisterValue(charFromAlp);
+		switch (carretWay) {
+		case "L":
+			this.scrollLeft();
+			break;
+		case "R":
+			this.scrollRight();
+			break;
+
+		default:
+			break;
+		}
 		
 	}
 	
 	public void executeProgram(){
+		String value = table_1.getValueAt(0,1).toString();
+		this.parseComand(value);
 		
 	}
 }
