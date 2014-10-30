@@ -51,9 +51,14 @@ import javax.swing.ScrollPaneConstants;
 
 public class Project {
 	//parametrs of command
-	private char charFromAlp;
-	private char way;
-	private int machineState;
+	private String charFromAlp;
+	private String carretWay;
+	private int carretMachineState;
+	
+	//current coordinate of the carret
+	private int currentPosition=0;
+	
+	private String currentValue;
 	
 	//count of registers
 	private int countOfTapeRegisters = 15;
@@ -108,7 +113,6 @@ public class Project {
 		for(int i =0;i<this.countOfTapeRegisters;i++)
 			tapeValueList.add(i, table.getValueAt(1, i).toString());
 	}
-	
 	//set on table repainted values
 	public void setTapeValues(){
 		for(int i =0;i<this.countOfTapeRegisters;i++){
@@ -118,12 +122,34 @@ public class Project {
 		}
 		
 	}
+
+	
+	   //get the value of register which is selected
+		public void getRegisterValue(){
+			for(int i = 0;i<this.countOfTapeRegisters;i++){
+				if(Integer.valueOf(table.getValueAt(0, i).toString()).equals(this.currentPosition)){
+					this.currentValue =table.getValueAt(1, i).toString();
+					System.out.println("Value is:"+this.currentValue);
+				}
+			}
+		}
+		//set the value of register which is selected
+		public void setRegisterValue(String value){
+			for(int i = 0;i<this.countOfTapeRegisters;i++){
+				if(Integer.valueOf(table.getValueAt(0, i).toString()).equals(this.currentPosition)){
+					this.table.setValueAt(value, 1, i);
+				}
+			}
+		} 
+	
 	//schrolling tape to the left
 	public void scrollLeft(){
 		leftMaxNumber-=1;
 		rightMaxNumber-=1;
-
-		System.out.println(leftMaxNumber + " " + rightMaxNumber);
+		this.currentPosition -=1;
+		
+		
+		System.out.println(leftMaxNumber + " " +currentPosition+" "+ rightMaxNumber);
 		tapeNumberList.add(0, leftMaxNumber);
 		tapeNumberList.remove(tapeNumberList.size()-1);
 		this.getValueAtTape();
@@ -137,18 +163,19 @@ public class Project {
 	public void scrollRight(){
 		this.leftMaxNumber+=1;
 		this.rightMaxNumber+=1;
-		
+		this.currentPosition+=1;
 
-		System.out.println(leftMaxNumber + " " + rightMaxNumber);
+		System.out.println(leftMaxNumber + " " +currentPosition+" "+ rightMaxNumber);
 		this.tapeNumberList.add(tapeNumberList.size(),rightMaxNumber);
 		this.tapeNumberList.remove(0);
 		this.getValueAtTape();
 		
 		tapeValueList.add(" ");
 		tapeValueList.remove(0);
-		
+		this.getRegisterValue();
 		this.setTapeValues();
 	}
+	
 	public Project() {
 		this.initialize();
 		this.initializeTape();
@@ -403,7 +430,16 @@ public class Project {
 	public void parseComand(String comand){
 		Pattern pattern = Pattern.compile("^[0-9a-zA-Z]\\/[RLN]\\/q[\\d]{1,3}$");
 		Matcher matcher = pattern.matcher(comand);
-		if(matcher.matches()) System.out.print("true"); else{System.out.println("false");}
+		if(matcher.matches()) {
+			String [] pars = comand.split("/");
+		} else {
+			JOptionPane.showMessageDialog(null, "Команда не правильно введена", "Помилка", JOptionPane.ERROR_MESSAGE, null);
+		}
+
+	}
+	
+	public void goCarret(char alpChar,char way,int state){
+		
 	}
 	
 	public void executeProgram(){
