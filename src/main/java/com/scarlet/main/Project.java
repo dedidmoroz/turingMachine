@@ -13,10 +13,12 @@ import javax.swing.JFrame;
 
 import java.awt.Toolkit;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.Timer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.JToolBar;
 import javax.swing.JButton;
@@ -55,11 +57,19 @@ import javax.swing.ScrollPaneConstants;
 import org.controlsfx.dialog.Dialogs;
 
 public class Project {
+	//Main executer
+	private Timer timer = null;
+	private Integer interval = Integer.valueOf("1000");
+	
+	
 	//parametrs of command
 	private String charFromAlp;
 	private String carretWay;
-	private int carretMachineState;
+	private Integer carretMachineState;
 	
+	
+	//Looger console
+	private DefaultListModel logger = new DefaultListModel();
 	//current coordinate of the carret
 	private int currentPosition=0;
 	
@@ -67,6 +77,7 @@ public class Project {
 	
 	//count of registers
 	private int countOfTapeRegisters = 15;
+	
 	private JFrame frame;
 	//list,which consist of all value of tape
 	private List<String> tapeValueList = new ArrayList<String>();
@@ -130,13 +141,16 @@ public class Project {
 
 	
 	   //get the value of register which is selected
-		public void getRegisterValue(){
+		public String getRegisterValue(){
 			for(int i = 0;i<this.countOfTapeRegisters;i++){
 				if(Integer.valueOf(table.getValueAt(0, i).toString()).equals(this.currentPosition)){
 					this.currentValue =table.getValueAt(1, i).toString();
 					System.out.println("Value is:"+this.currentValue);
-				}
+					return this.currentValue;
+					
+				} 
 			}
+			return this.currentValue;
 		}
 		//set the value of register which is selected
 		public void setRegisterValue(String value){
@@ -194,6 +208,23 @@ public class Project {
 	/**
 	 * 
 	 */
+	//makes the editor for a new program
+	private void newProgram(){
+		for(int i =0;i<table.getColumnCount();i++){
+			table.setValueAt("", 1, i);
+		}
+		
+		for(int i=0;i<table_1.getRowCount();i++){
+			for(int j = 0;j<table_1.getColumnCount();j++){
+				table_1.setValueAt("", i, j);
+			}
+		}
+		logger.clear();
+	}
+	//show window in which you can change interval
+	private void setIntervalByDialog(){
+		Project.this.interval = Integer.valueOf(JOptionPane.showInputDialog("Введіть інтервал(мілісекунди):"));
+	}
 	private void initialize() {
 		
 		frame = new JFrame();
@@ -202,17 +233,23 @@ public class Project {
 		frame.setTitle("Машина Тюрінга, Кузь П.С.,група 343Ск");
 		frame.setBounds(100, 100, 633, 464);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		
+
 		JMenuBar menuBar = new JMenuBar();
 		frame.setJMenuBar(menuBar);
 		
 		JMenu menu = new JMenu("Головне");
-		menu.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\template.gif"));
+		//menu.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\template.gif"));
 		menu.setToolTipText("Меню управління програмою");
 		menuBar.add(menu);
 		
 		JMenuItem menuItem = new JMenuItem("Нова програма");
-		menuItem.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\document.gif"));
+		menuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+					Project.this.newProgram();
+			}
+		});
+		menuItem.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\edit.gif"));
+		//menuItem.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\document.gif"));
 		menuItem.setToolTipText("Створення нової програми");
 		menuItem.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_MASK));
 		menu.add(menuItem);
@@ -221,13 +258,13 @@ public class Project {
 		menu.add(separator);
 		
 		JMenuItem menuItem_1 = new JMenuItem("Завантажити програму");
-		menuItem_1.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\clipboard.gif"));
+		menuItem_1.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\clipboard.gif"));
 		menuItem_1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK | InputEvent.ALT_MASK));
 		menuItem_1.setToolTipText("Завантаження існуючої програми з файла");
 		menu.add(menuItem_1);
 		
 		JMenuItem menuItem_2 = new JMenuItem("Зберегти програму");
-		menuItem_2.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\diskette.gif"));
+		menuItem_2.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\diskette.gif"));
 		menuItem_2.setToolTipText("Зберегти програму в файл");
 		menuItem_2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.ALT_MASK));
 		menu.add(menuItem_2);
@@ -236,7 +273,7 @@ public class Project {
 		menu.add(separator_1);
 		
 		JMenuItem menuItem_3 = new JMenuItem("Вихід");
-		menuItem_3.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\grow.gif"));
+		menuItem_3.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\database.gif"));
 		menuItem_3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
@@ -252,7 +289,7 @@ public class Project {
 		menuBar.add(menu_1);
 		
 		JMenuItem menuItem_5 = new JMenuItem("Виконати ");
-		menuItem_5.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\graph.gif"));
+		menuItem_5.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\play.gif"));
 		menuItem_5.setToolTipText("Виконати автоматично програму");
 		menuItem_5.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_MASK | InputEvent.ALT_MASK));
 		menuItem_5.addActionListener((ActionEvent e)->{
@@ -264,7 +301,7 @@ public class Project {
 		menu_1.add(separator_2);
 		
 		JMenuItem menuItem_4 = new JMenuItem("По-кроково");
-		menuItem_4.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\skip.gif"));
+		menuItem_4.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\fastforward.gif"));
 		menuItem_4.setToolTipText("По-кроково виконати програму");
 		menuItem_4.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.ALT_MASK));
 		menu_1.add(menuItem_4);
@@ -273,6 +310,15 @@ public class Project {
 		menu_2.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\clock.gif"));
 		menu_2.setToolTipText("Швидкість виконання програми");
 		menuBar.add(menu_2);
+		
+		JMenuItem menuItem_8 = new JMenuItem("Інтервал");
+		menuItem_8.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Project.this.setIntervalByDialog();
+			}
+		});
+		menuItem_8.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\chart.gif"));
+		menu_2.add(menuItem_8);
 		
 		JMenu menu_3 = new JMenu("Допомога");
 		menu_3.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\ico\\beige\\two-docs.gif"));
@@ -324,7 +370,7 @@ public class Project {
 		frame.getContentPane().add(button);
 		
 		JLabel lblNewLabel = new JLabel("");
-		lblNewLabel.setIcon(new ImageIcon("C:\\Users\\scarlet_bean\\Workspace\\MainBean\\src\\main\\resources\\arrow_linear_top.png"));
+		lblNewLabel.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\arrow_linear_top.png"));
 		lblNewLabel.setBounds(268, 87, 80, 80);
 		frame.getContentPane().add(lblNewLabel);
 		
@@ -415,7 +461,7 @@ public class Project {
 		table_1.getColumnModel().getColumn(19).setPreferredWidth(50);
 		scrollPane.setViewportView(table_1);
 		
-		
+		list.setModel(logger);
 		JButton btnNewButton_1 = new JButton("Добавити");
 		btnNewButton_1.addActionListener((ActionEvent e)->{
 			if(charsField.getText().length()!=0){
@@ -427,24 +473,84 @@ public class Project {
 				JOptionPane.showMessageDialog(null,  "Введіть алфавіт","Помилка", JOptionPane.INFORMATION_MESSAGE, null);
 			}
 			
-			parseComand("a/R/q3");
 		});
 		btnNewButton_1.setFont(new Font("Tahoma", Font.PLAIN, 10));
 		btnNewButton_1.setBounds(263, 176, 113, 32);
 		frame.getContentPane().add(btnNewButton_1);
 		
+		JToolBar toolBar = new JToolBar();
+		toolBar.setBounds(1, 0, 269, 27);
+		frame.getContentPane().add(toolBar);
+		
+		JButton button_1 = new JButton("");
+		button_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Project.this.newProgram();
+			}
+		});
+		button_1.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\edit.gif"));
+		toolBar.add(button_1);
+		
+		JButton button_2 = new JButton("");
+		button_2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			
+			}
+		});
+		button_2.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\clipboard.gif"));
+		toolBar.add(button_2);
+		
+		JButton button_3 = new JButton("");
+		button_3.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\diskette.gif"));
+		toolBar.add(button_3);
+		
+		JButton button_4 = new JButton("");
+		button_4.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Project.this.executeProgram();
+			}
+		});
+		button_4.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\play.gif"));
+		toolBar.add(button_4);
+		
+		JButton button_5 = new JButton("");
+		button_5.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\fastforward.gif"));
+		toolBar.add(button_5);
+		
+		JButton button_6 = new JButton("");
+		button_6.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				Project.this.setIntervalByDialog();
+			}
+		});
+		button_6.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\chart.gif"));
+		toolBar.add(button_6);
+		
+		JButton button_7 = new JButton("");
+		button_7.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+		button_7.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\database.gif"));
+		toolBar.add(button_7);
+		
 		
 	}
 	
+	
+	Pattern pattern = Pattern.compile("^[0-9a-zA-Z]\\/[RLN]\\/q[\\d]{1,3}$");
+	Matcher matcher = null;
 	public void parseComand(String comand){
-		Pattern pattern = Pattern.compile("^[0-9a-zA-Z]\\/[RLN]\\/q[\\d]{1,3}$");
-		Matcher matcher = pattern.matcher(comand);
+		
+		 matcher = pattern.matcher(comand);
 		if(matcher.matches()) {
 			String [] pars = comand.split("/");
 			if(pars.length==3){
 				this.charFromAlp = pars[0];
 				this.carretWay = pars[1];
-				this.carretMachineState = pars[2].charAt(1);
+				this.carretMachineState = Integer.parseInt(pars[2].substring(1));
+				System.out.println(charFromAlp+" "+carretWay+" "+carretMachineState);
 				this.goCarret(this.charFromAlp, this.carretWay, this.carretMachineState);
 			}
 		} else {
@@ -462,16 +568,64 @@ public class Project {
 		case "R":
 			this.scrollRight();
 			break;
-
 		default:
 			break;
 		}
 		
 	}
+	private String command = null;
 	
+	@SuppressWarnings("unchecked")
 	public void executeProgram(){
+		logger.clear();
 		String value = table_1.getValueAt(0,1).toString();
 		this.parseComand(value);
+		logger.addElement(this.getRegisterValue()+" ->"+this.charFromAlp+"| go to "+this.carretMachineState+" state");
+		System.out.println("fuck");
 		
+		this.timer = new Timer(this.interval, e ->{
+			for(int i =0;i<charsField.getText().length();i++){	
+				 
+					if(!this.getRegisterValue().equals(" ")){
+						if( this.getRegisterValue().toString().equals(table_1.getValueAt(i, 0).toString()) ) {
+							try{
+								command = table_1.getValueAt(i, this.carretMachineState).toString();
+							} catch(NullPointerException q){
+								logger.addElement("-------------");
+								
+								logger.addElement("Завершено!");
+								JOptionPane.showMessageDialog(null, "Завершено!");
+								timer.stop();
+								break;
+							}
+					
+							
+							if(command !=null){
+								System.out.println("Executing " + table_1.getValueAt(i, this.carretMachineState).toString()+ " State:"+this.carretMachineState);
+								logger.addElement(this.getRegisterValue()+" ->"+this.charFromAlp+"| go to "+this.carretMachineState+" state");
+								parseComand(command);
+								command = null;
+							} else {
+								
+								logger.addElement("-------------");
+								logger.addElement("Завершено!");
+								JOptionPane.showMessageDialog(null, "Завершено!");
+								timer.stop();
+								break;
+							}
+						}
+					} else {
+						logger.addElement("-------------");
+						logger.addElement("Завершено! Вона завершилась, улибніться=)");
+						logger.addElement("Кількість дій: "+(this.logger.getSize()-2));
+						JOptionPane.showMessageDialog(null, "Завершено!");
+						timer.stop();
+						break;
+					}
+			}
+		 
+			
+		});
+		timer.start();
 	}
 }
