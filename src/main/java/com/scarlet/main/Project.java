@@ -14,6 +14,8 @@ import javax.swing.JFrame;
 import java.awt.Toolkit;
 
 import javax.swing.DefaultListModel;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JMenuBar;
 import javax.swing.JMenu;
 import javax.swing.JOptionPane;
@@ -45,11 +47,18 @@ import javax.swing.JLabel;
 
 import java.awt.Cursor;
 import java.awt.Component;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 import javax.swing.JTextField;
 import javax.swing.JList;
 import javax.swing.border.EtchedBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileFilter;
 import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 import javax.swing.ScrollPaneConstants;
@@ -119,21 +128,23 @@ public class Project {
 		for(int i =0;i<this.countOfTapeRegisters;i++){
 			tapeNumberList.add((-7+i));
 			tapeValueList.add(" ");
-			table.setValueAt(tapeNumberList.get(i), 0, i);
-			table.setValueAt(tapeValueList.get(i), 1, i);
+			table.setValueAt(tapeNumberList.get(i), 1, i);
+			table.setValueAt(tapeValueList.get(i), 0, i);
 			
 		}
+		
+		
 	}
 	//takes the current values at tape
 	public void getValueAtTape(){
 		for(int i =0;i<this.countOfTapeRegisters;i++)
-			tapeValueList.add(i, table.getValueAt(1, i).toString());
+			tapeValueList.add(i, table.getValueAt(0, i).toString());
 	}
 	//set on table repainted values
 	public void setTapeValues(){
 		for(int i =0;i<this.countOfTapeRegisters;i++){
-			table.setValueAt(tapeNumberList.get(i), 0, i);
-			table.setValueAt(tapeValueList.get(i), 1, i);
+			table.setValueAt(tapeNumberList.get(i), 1, i);
+			table.setValueAt(tapeValueList.get(i), 0, i);
 			
 		}
 		
@@ -143,8 +154,8 @@ public class Project {
 	   //get the value of register which is selected
 		public String getRegisterValue(){
 			for(int i = 0;i<this.countOfTapeRegisters;i++){
-				if(Integer.valueOf(table.getValueAt(0, i).toString()).equals(this.currentPosition)){
-					this.currentValue =table.getValueAt(1, i).toString();
+				if(Integer.valueOf(table.getValueAt(1, i).toString()).equals(this.currentPosition)){
+					this.currentValue =table.getValueAt(0, i).toString();
 					System.out.println("Value is:"+this.currentValue);
 					return this.currentValue;
 					
@@ -155,8 +166,8 @@ public class Project {
 		//set the value of register which is selected
 		public void setRegisterValue(String value){
 			for(int i = 0;i<this.countOfTapeRegisters;i++){
-				if(Integer.valueOf(table.getValueAt(0, i).toString()).equals(this.currentPosition)){
-					this.table.setValueAt(value, 1, i);
+				if(Integer.valueOf(table.getValueAt(1, i).toString()).equals(this.currentPosition)){
+					this.table.setValueAt(value, 0, i);
 				}
 			}
 		} 
@@ -211,7 +222,7 @@ public class Project {
 	//makes the editor for a new program
 	private void newProgram(){
 		for(int i =0;i<table.getColumnCount();i++){
-			table.setValueAt("", 1, i);
+			table.setValueAt("", 0, i);
 		}
 		
 		for(int i=0;i<table_1.getRowCount();i++){
@@ -225,9 +236,23 @@ public class Project {
 	private void setIntervalByDialog(){
 		Project.this.interval = Integer.valueOf(JOptionPane.showInputDialog("Введіть інтервал(мілісекунди):"));
 	}
+	
+	
+	//add a alphabet to table
+	private void addAlphabet(){
+		if(charsField.getText().length()!=0){
+			char [] array = charsField.getText().toCharArray();
+			for(int i = 0;i<array.length;i++){
+				table_1.setValueAt(array[i], i, 0);
+			}
+		}else {
+			JOptionPane.showMessageDialog(null,  "Введіть алфавіт","Помилка", JOptionPane.INFORMATION_MESSAGE, null);
+		}
+	}
 	private void initialize() {
 		
 		frame = new JFrame();
+		frame.setIconImage(Toolkit.getDefaultToolkit().getImage("C:\\Users\\Павло\\workspace\\mavenproject1\\src\\main\\resources\\css\\icon.png"));
 		frame.setResizable(false);
 		
 		frame.setTitle("Машина Тюрінга, Кузь П.С.,група 343Ск");
@@ -258,6 +283,11 @@ public class Project {
 		menu.add(separator);
 		
 		JMenuItem menuItem_1 = new JMenuItem("Завантажити програму");
+		menuItem_1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Project.this.makeLoadFromFile();
+			}
+		});
 		menuItem_1.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\clipboard.gif"));
 		menuItem_1.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_L, InputEvent.CTRL_MASK | InputEvent.ALT_MASK));
 		menuItem_1.setToolTipText("Завантаження існуючої програми з файла");
@@ -267,6 +297,14 @@ public class Project {
 		menuItem_2.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\diskette.gif"));
 		menuItem_2.setToolTipText("Зберегти програму в файл");
 		menuItem_2.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.ALT_MASK));
+		menuItem_2.addActionListener(e ->{
+			try {
+				Project.this.makeSaveToFile();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
 		menu.add(menuItem_2);
 		
 		JSeparator separator_1 = new JSeparator();
@@ -301,6 +339,11 @@ public class Project {
 		menu_1.add(separator_2);
 		
 		JMenuItem menuItem_4 = new JMenuItem("По-кроково");
+		menuItem_4.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				Project.this.stepExecute();
+			}
+		});
 		menuItem_4.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\fastforward.gif"));
 		menuItem_4.setToolTipText("По-кроково виконати програму");
 		menuItem_4.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_MASK | InputEvent.ALT_MASK));
@@ -312,6 +355,7 @@ public class Project {
 		menuBar.add(menu_2);
 		
 		JMenuItem menuItem_8 = new JMenuItem("Інтервал");
+		menuItem_8.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, InputEvent.CTRL_MASK | InputEvent.ALT_MASK));
 		menuItem_8.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				Project.this.setIntervalByDialog();
@@ -326,13 +370,22 @@ public class Project {
 		menuBar.add(menu_3);
 		
 		JMenuItem menuItem_7 = new JMenuItem("Інструкція користувача");
+		menuItem_7.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				try {
+					instructDialog dialog = new instructDialog();
+					dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+					dialog.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+
+			}
+		});
 		menu_3.add(menuItem_7);
 		
 		JSeparator separator_3 = new JSeparator();
 		menu_3.add(separator_3);
-		
-		JMenuItem menuItem_6 = new JMenuItem("Про програму");
-		menu_3.add(menuItem_6);
 		frame.getContentPane().setLayout(null);
 		
 		table = new JTable();
@@ -352,7 +405,7 @@ public class Project {
 		table.setBorder(new BevelBorder(BevelBorder.RAISED, new Color(47, 79, 79), new Color(0, 0, 0), null, null));
 		table.setBackground(new Color(128, 0, 0));
 		table.setForeground(Color.WHITE);
-		table.setBounds(50, 58, 518, 32);
+		table.setBounds(50, 58, 518, 16);
 		frame.getContentPane().add(table);
 		
 		JButton btnNewButton = new JButton("<<");
@@ -371,7 +424,7 @@ public class Project {
 		
 		JLabel lblNewLabel = new JLabel("");
 		lblNewLabel.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\arrow_linear_top.png"));
-		lblNewLabel.setBounds(268, 87, 80, 80);
+		lblNewLabel.setBounds(268, 74, 80, 80);
 		frame.getContentPane().add(lblNewLabel);
 		
 		charsField = new JTextField();
@@ -464,17 +517,10 @@ public class Project {
 		list.setModel(logger);
 		JButton btnNewButton_1 = new JButton("Добавити");
 		btnNewButton_1.addActionListener((ActionEvent e)->{
-			if(charsField.getText().length()!=0){
-				char [] array = charsField.getText().toCharArray();
-				for(int i = 0;i<array.length;i++){
-					table_1.setValueAt(array[i], i, 0);
-				}
-			}else {
-				JOptionPane.showMessageDialog(null,  "Введіть алфавіт","Помилка", JOptionPane.INFORMATION_MESSAGE, null);
-			}
-			
+			this.addAlphabet();
 		});
-		btnNewButton_1.setFont(new Font("Tahoma", Font.PLAIN, 10));
+		
+		btnNewButton_1.setFont(new Font("Times New Roman", Font.BOLD | Font.ITALIC, 14));
 		btnNewButton_1.setBounds(263, 176, 113, 32);
 		frame.getContentPane().add(btnNewButton_1);
 		
@@ -483,6 +529,7 @@ public class Project {
 		frame.getContentPane().add(toolBar);
 		
 		JButton button_1 = new JButton("");
+		button_1.setToolTipText("Нова програма");
 		button_1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Project.this.newProgram();
@@ -492,6 +539,7 @@ public class Project {
 		toolBar.add(button_1);
 		
 		JButton button_2 = new JButton("");
+		button_2.setToolTipText("Завантажити програму");
 		button_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 			
@@ -501,10 +549,12 @@ public class Project {
 		toolBar.add(button_2);
 		
 		JButton button_3 = new JButton("");
+		button_3.setToolTipText("Зберегти програму");
 		button_3.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\diskette.gif"));
 		toolBar.add(button_3);
 		
 		JButton button_4 = new JButton("");
+		button_4.setToolTipText("Запустити алгоритм");
 		button_4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Project.this.executeProgram();
@@ -514,10 +564,15 @@ public class Project {
 		toolBar.add(button_4);
 		
 		JButton button_5 = new JButton("");
+		button_5.setToolTipText("Запустити по-кроково");
 		button_5.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\fastforward.gif"));
+		button_5.addActionListener(e -> {
+			Project.this.stepExecute();
+		});
 		toolBar.add(button_5);
 		
 		JButton button_6 = new JButton("");
+		button_6.setToolTipText("Встановити інтервал");
 		button_6.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				Project.this.setIntervalByDialog();
@@ -527,6 +582,7 @@ public class Project {
 		toolBar.add(button_6);
 		
 		JButton button_7 = new JButton("");
+		button_7.setToolTipText("Вийти");
 		button_7.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				System.exit(0);
@@ -581,7 +637,6 @@ public class Project {
 		String value = table_1.getValueAt(0,1).toString();
 		this.parseComand(value);
 		logger.addElement(this.getRegisterValue()+" ->"+this.charFromAlp+"| go to "+this.carretMachineState+" state");
-		System.out.println("fuck");
 		
 		this.timer = new Timer(this.interval, e ->{
 			for(int i =0;i<charsField.getText().length();i++){	
@@ -592,9 +647,8 @@ public class Project {
 								command = table_1.getValueAt(i, this.carretMachineState).toString();
 							} catch(NullPointerException q){
 								logger.addElement("-------------");
-								
-								logger.addElement("Завершено!");
-								JOptionPane.showMessageDialog(null, "Завершено!");
+								logger.addElement("Аварійно завершено!");
+								JOptionPane.showMessageDialog(null, "Помилка десь");
 								timer.stop();
 								break;
 							}
@@ -616,7 +670,7 @@ public class Project {
 						}
 					} else {
 						logger.addElement("-------------");
-						logger.addElement("Завершено! Вона завершилась, улибніться=)");
+						logger.addElement("Завершено! =)");
 						logger.addElement("Кількість дій: "+(this.logger.getSize()-2));
 						JOptionPane.showMessageDialog(null, "Завершено!");
 						timer.stop();
@@ -627,5 +681,164 @@ public class Project {
 			
 		});
 		timer.start();
+	}
+	//execute program in steps
+	@SuppressWarnings("unchecked")
+	private Boolean isFirst = true;
+	public void stepExecute(){
+		if(this.isFirst){
+			logger.clear();
+			String value = table_1.getValueAt(0,1).toString();
+			this.parseComand(value);
+			logger.addElement(this.getRegisterValue()+" ->"+this.charFromAlp+"| go to "+this.carretMachineState+" state");
+			this.isFirst = false;
+			
+		} else {
+				for(int i =0;i<charsField.getText().length();i++){	
+				   	 if(!this.getRegisterValue().equals(" ")){
+						if( this.getRegisterValue().toString().equals(table_1.getValueAt(i, 0).toString()) ) {
+							try{
+								command = table_1.getValueAt(i, this.carretMachineState).toString();
+							} catch(NullPointerException q){
+								logger.addElement("-------------");
+								logger.addElement("Аварійно завершено!");
+								JOptionPane.showMessageDialog(null, "Помилка десь");
+								this.isFirst = true;
+								break;
+							}
+					
+							
+							if(command !=null){
+								System.out.println("Executing " + table_1.getValueAt(i, this.carretMachineState).toString()+ " State:"+this.carretMachineState);
+								logger.addElement(this.getRegisterValue()+" ->"+this.charFromAlp+"| go to "+this.carretMachineState+" state");
+								parseComand(command);
+								command = null;
+							} else {
+				
+								logger.addElement("-------------");
+								logger.addElement("Завершено!");
+								JOptionPane.showMessageDialog(null, "Завершено!");
+								this.isFirst = true;
+								break;
+							}
+						}
+					} else {
+						logger.addElement("-------------");
+						logger.addElement("Завершено успішно! ");
+						logger.addElement("Кількість дій: "+(this.logger.getSize()-2));
+						JOptionPane.showMessageDialog(null, "Завершено!");
+						this.isFirst = true;
+						break;
+					}
+			}
+		}
+	}
+	
+	private List<String> listOfComands = new ArrayList<>();
+	//make saving to file
+	
+	private boolean flag = false;
+	public void makeSaveToFile() throws IOException{
+		flag = false;
+		listOfComands.clear();
+		JFileChooser chooser = new JFileChooser();
+		
+		chooser.setMultiSelectionEnabled(false);
+		int choice = chooser.showSaveDialog(null);
+		if(choice == JFileChooser.APPROVE_OPTION){
+			File file = chooser.getSelectedFile();
+			//Create a file if not exist
+			if(!file.exists()) 
+				file.createNewFile();
+			
+			try(PrintWriter writer = new PrintWriter(file);){
+				//make load commands to collection
+				for(int i =1;i<table_1.getColumnCount();i++){
+					for (int j = 0; j < table_1.getRowCount(); j++) {
+						try{
+							if(table_1.getValueAt(j, i)!=null 
+												/*|| !table_1.getValueAt(j, i).toString().startsWith("")*/){
+								this.listOfComands.add(table_1.getValueAt(j, i).toString());
+								System.out.println(table_1.getValueAt(j, i));
+								flag = true;
+							}
+							
+						}catch(NullPointerException e) {
+							JOptionPane.showMessageDialog(null, "Список команд пустий");
+						}
+					}if(flag)
+						this.listOfComands.add("-");
+					flag = false;
+				}
+				
+				//make saving to file
+				for(String i: listOfComands){
+					writer.println(i);
+				}
+				if(!this.charsField.getText().isEmpty()) {
+					writer.println("[АЛФАВІТ]");
+					writer.write(this.charsField.getText());
+				}
+			}catch(IOException e){
+				JOptionPane.showMessageDialog(null, "Проблеми з збереженням");
+			}
+		}
+	}
+	//make load from file
+	public void makeLoadFromFile(){
+		//initialized
+		this.listOfComands.clear();
+		JFileChooser chooser = new JFileChooser();
+		int choose = chooser.showOpenDialog(null);
+		
+		//connect to file
+		if(choose == JFileChooser.APPROVE_OPTION){
+			File f = chooser.getSelectedFile();
+			//make load from file
+			try(BufferedReader br = new BufferedReader(new FileReader(f));){
+				String s = "";
+				while((s = br.readLine())!=null){
+					listOfComands.add(s);
+					System.out.println(s);
+				}
+				
+			}catch(IOException e){
+				JOptionPane.showMessageDialog(null, "Проблеми з завантаження з файла");
+			}
+			
+			String [][] dataFromFile = new String[20][20];
+			int i =0; int j = 0,colCount = 0;
+			if(!listOfComands.isEmpty()){
+				for(String str : listOfComands){
+					if(!str.equals("-") && !str.startsWith("[")){
+						dataFromFile[i][j] = str;
+						i++;
+					} else if(!str.startsWith("[")) {
+						i=0;
+						j++;
+						colCount++;
+					} else {
+						break;
+					}
+			
+				}
+				
+				 
+				i = 0;
+				j = 1;
+				for(int k = 0;k<20;k++){
+					
+					for(int l = 0;l<colCount+1;l++){
+						if(dataFromFile[k][l]!=null){
+							table_1.setValueAt(dataFromFile[k][l], i,j);
+						}
+						
+					}
+					i++;
+				}
+				this.charsField.setText(listOfComands.get(listOfComands.size()-1));
+				this.addAlphabet();
+			}
+		}
 	}
 }
