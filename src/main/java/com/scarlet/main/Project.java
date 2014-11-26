@@ -542,7 +542,7 @@ public class Project {
 		button_2.setToolTipText("Завантажити програму");
 		button_2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-			
+				Project.this.makeLoadFromFile();
 			}
 		});
 		button_2.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\clipboard.gif"));
@@ -551,6 +551,14 @@ public class Project {
 		JButton button_3 = new JButton("");
 		button_3.setToolTipText("Зберегти програму");
 		button_3.setIcon(new ImageIcon("C:\\Users\\Павло\\workspace\\Turings Machine\\src\\main\\resources\\ico\\beige\\diskette.gif"));
+		button_3.addActionListener(e -> {
+			try {
+				Project.this.makeSaveToFile();
+			} catch (Exception e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		});
 		toolBar.add(button_3);
 		
 		JButton button_4 = new JButton("");
@@ -595,7 +603,7 @@ public class Project {
 	}
 	
 	
-	Pattern pattern = Pattern.compile("^[0-9a-zA-Z]\\/[RLN]\\/q[\\d]{1,3}$");
+	Pattern pattern = Pattern.compile("^[0-9a-zA-Z_-]\\/[RLN]\\/q[\\d]{1,3}$");
 	Matcher matcher = null;
 	public void parseComand(String comand){
 		
@@ -616,7 +624,8 @@ public class Project {
 	}
 	
 	public void goCarret(String charFromAlp,String carretWay,int state){
-		this.setRegisterValue(charFromAlp);
+		if(!charFromAlp.equals("_"))
+			this.setRegisterValue(charFromAlp);
 		switch (carretWay) {
 		case "L":
 			this.scrollLeft();
@@ -691,6 +700,7 @@ public class Project {
 			String value = table_1.getValueAt(0,1).toString();
 			this.parseComand(value);
 			logger.addElement(this.getRegisterValue()+" ->"+this.charFromAlp+"| go to "+this.carretMachineState+" state");
+		
 			this.isFirst = false;
 			
 		} else {
@@ -758,17 +768,15 @@ public class Project {
 						try{
 							if(table_1.getValueAt(j, i)!=null 
 												/*|| !table_1.getValueAt(j, i).toString().startsWith("")*/){
-								this.listOfComands.add(table_1.getValueAt(j, i).toString());
+								this.listOfComands.add(i+","+j+","+table_1.getValueAt(j, i).toString());
 								System.out.println(table_1.getValueAt(j, i));
-								flag = true;
+								
 							}
 							
 						}catch(NullPointerException e) {
 							JOptionPane.showMessageDialog(null, "Список команд пустий");
 						}
-					}if(flag)
-						this.listOfComands.add("-");
-					flag = false;
+					}
 				}
 				
 				//make saving to file
@@ -810,32 +818,17 @@ public class Project {
 			int i =0; int j = 0,colCount = 0;
 			if(!listOfComands.isEmpty()){
 				for(String str : listOfComands){
-					if(!str.equals("-") && !str.startsWith("[")){
-						dataFromFile[i][j] = str;
-						i++;
-					} else if(!str.startsWith("[")) {
-						i=0;
-						j++;
-						colCount++;
+					if(!str.startsWith("[")){
+						String [] mas = str.split(",");
+						i = Integer.parseInt(mas[0]);
+						j = Integer.parseInt(mas[1]);
+						String comand = mas[2];
+						table_1.setValueAt(comand, j, i);
 					} else {
 						break;
 					}
-			
 				}
 				
-				 
-				i = 0;
-				j = 1;
-				for(int k = 0;k<20;k++){
-					
-					for(int l = 0;l<colCount+1;l++){
-						if(dataFromFile[k][l]!=null){
-							table_1.setValueAt(dataFromFile[k][l], i,j);
-						}
-						
-					}
-					i++;
-				}
 				this.charsField.setText(listOfComands.get(listOfComands.size()-1));
 				this.addAlphabet();
 			}
